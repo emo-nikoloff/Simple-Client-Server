@@ -1,0 +1,5 @@
+<Solution>
+  <Project Path="Configurations/Configurations.csproj" />
+  <Project Path="SimpleClient/SimpleClient.csproj" />
+  <Project Path="SimpleServer/SimpleServer.csproj" />
+</Solution>
