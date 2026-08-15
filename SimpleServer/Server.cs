@@ -7,9 +7,9 @@ namespace SimpleServer;
 
 public class Server
 {
-    private readonly List<StreamWriter> clients = new();
+    private readonly List<ConnectedClient> clients = new();
 
-    static void Main(string[] agrs)
+    static void Main(string[] args)
     {
         new Server().Start();
     }
@@ -18,32 +18,54 @@ public class Server
     {
         try
         {
-            using TcpListener listener = new(IPAddress.Any, ServerPort);
-            listener.Start();
+            using TcpListener tcpListener = new(IPAddress.Any, ServerPort);
+            tcpListener.Start();
             Console.WriteLine($"Server started on port: {ServerPort}");
 
             object mutex = new();
 
             while (true)
             {
-                TcpClient client = listener.AcceptTcpClient();
-                Console.WriteLine("Client connected.");
+                TcpClient tcpClient = tcpListener.AcceptTcpClient();
+
+                string clientEndPoint = tcpClient.Client.RemoteEndPoint?.ToString() ?? "Unknown IP";
+                Console.WriteLine($"[{clientEndPoint}] Client connecting...");
 
                 Thread clientThread = new(() =>
                 {
-                    using (client)
+                    using (tcpClient)
                     {
-                        using StreamReader reader = new(client.GetStream());
-                        using StreamWriter writer = new(client.GetStream())
+                        using StreamReader reader = new(tcpClient.GetStream());
+                        using StreamWriter writer = new(tcpClient.GetStream())
                         {
                             AutoFlush = true,
                         };
 
+                        ConnectedClient? currentClient = null;
+
                         try
                         {
+                            string? username = reader.ReadLine();
+                            if (string.IsNullOrWhiteSpace(username))
+                            {
+                                username = "Guest";
+                            }
+
+                            currentClient = new ConnectedClient(tcpClient, writer, username);
+
                             lock (mutex)
                             {
-                                clients.Add(writer);
+                                clients.Add(currentClient);
+
+                                Console.WriteLine($"{currentClient} connected. Total clients: {clients.Count}");
+
+                                foreach (ConnectedClient client in clients)
+                                {
+                                    if (client != currentClient)
+                                    {
+                                        client.Writer.WriteLine($"--- {currentClient.Username} joined ---");
+                                    }
+                                }
                             }
 
                             string? input;
@@ -54,25 +76,38 @@ public class Server
                                     break;
                                 }
 
+                                Console.WriteLine($"{currentClient} says: {input}");
+
                                 lock (mutex)
                                 {
-                                    foreach (StreamWriter client in clients)
+                                    foreach (ConnectedClient client in clients)
                                     {
-                                        client.WriteLine(input);
+                                        if (client != currentClient)
+                                        {
+                                            client.Writer.WriteLine($"{client.Username}: {input}");
+                                        }
                                     }
                                 }
                             }
                         }
                         catch (Exception ex)
                         {
-                            Console.WriteLine($"Client connection error: {ex.Message}");
+                            Console.WriteLine($"[{clientEndPoint}] connection error: {ex.Message}");
                         }
                         finally
                         {
-                            lock (mutex)
+                            if (currentClient != null)
                             {
-                                clients.Remove(writer);
-                                Console.WriteLine("Client disconnected.");
+                                lock (mutex)
+                                {
+                                    clients.Remove(currentClient);
+                                    Console.WriteLine($"{currentClient} left. Total: {clients.Count}");
+
+                                    foreach (ConnectedClient client in clients)
+                                    {
+                                        client.Writer.WriteLine($"--- {currentClient.Username} left ---");
+                                    }
+                                }
                             }
                         }
                     }

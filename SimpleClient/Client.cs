@@ -16,7 +16,7 @@ public class Client
         try
         {
             Console.Write("Enter your name: ");
-            string myName = Console.ReadLine()!;
+            string? myName = Console.ReadLine();
 
             using TcpClient serverConnection = new(ServerHost, ServerPort);
 
@@ -26,6 +26,8 @@ public class Client
                 AutoFlush = true,
             };
 
+            writer.WriteLine(myName);
+
             Thread writerThread = new(() =>
             {
                 try
@@ -33,13 +35,18 @@ public class Client
                     string input;
                     while ((input = Console.ReadLine()!) != null)
                     {
+                        if (string.IsNullOrWhiteSpace(input))
+                        {
+                            continue;
+                        }
+
                         if (input.Equals("quit", StringComparison.CurrentCultureIgnoreCase))
                         {
                             writer.WriteLine("quit");
                             break;
                         }
 
-                        writer.WriteLine($"{myName}: {input}");
+                        writer.WriteLine(input);
                     }
                 }
                 catch (Exception ex)
