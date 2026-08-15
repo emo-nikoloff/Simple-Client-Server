@@ -1,6 +1,6 @@
 # Работен процес на проекта
 
-[English](README.md) | Български
+[English](README.md) | [📖 Преглед на кода](CODE_WALKTHROUGH.md)
 
 > Този проект е с обучителна цел.
 

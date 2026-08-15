@@ -1,6 +1,6 @@
 # Project workflow
 
-English | [Български](README-bg.md)
+[Български](README-bg.md) | [📖 Code Walkthrough](CODE_WALKTHROUGH.md)
 
 > This project is created for educational purposes.
 
