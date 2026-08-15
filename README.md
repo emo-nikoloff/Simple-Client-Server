@@ -16,8 +16,8 @@
 
 ## 1. Server
 
-- **The Accept Loop:** The `while (true) { TcpClient tcpClient = tcpListener.AcceptTcpClient(); ... }` block is the heart of the server. The main thread (started by the `Main` method) does nothing but loop and wait at the port's "door". When someone connects, it accepts the connection, delegates the work to a new thread, and immediately returns to wait for the next client.
-- **Thread Safety:** Since there is one main thread and potentially many client threads, they all access the shared client list. To protect the program from concurrent access, `lock (mutex)` is used. The `lock` works like a room key – when one thread enters, the others wait outside. This prevents two main problems:
+- **The Accept Loop:** The `while (true) { TcpClient tcpClient = tcpListener.AcceptTcpClient(); ... }` block is the heart of the server. The main thread (started by the `Main` method) continuously waits for incoming connections on the specified port. When a client connects, it accepts the connection, starts a new thread to handle that client, and returns to waiting for the next connection.
+- **Thread Safety:** Since there is one main thread and potentially many client threads, they all access the shared client list. To protect the program from concurrent access, `lock (mutex)` is used. The `lock` ensures that only one thread can access the shared client list at a time. This prevents two main problems:
     - *Race Condition:* If multiple client threads try to access the shared client list at the same time, the operations can interfere with each other and lead to unexpected behavior.
     - *Modification during read:* A collection should not be modified while it is being iterated with `foreach`. Without locking, this could throw an `InvalidOperationException`.
 - **Client Identification:** When a client connects, the server reads the username sent by the client. If no valid name is provided, `"Guest"` is used. The server then creates a `ConnectedClient` object containing the client's TCP connection, writer, and username.
@@ -26,7 +26,7 @@
 - **The Finally Block:** The `finally` block removes the disconnected client from the shared list and notifies the remaining clients. This cleanup is performed even when the connection ends because of an exception.
 - **NetworkStream Handling:** The server uses `GetStream()` to access the two-way communication stream of each TCP connection. A `StreamReader` is used to receive data from the client, while a `StreamWriter` is used to send data to that client.
 
-> **NOTE (`AutoFlush = true`):** By default, `StreamWriter` uses an internal buffer and does not send data immediately. Setting `AutoFlush = true` ensures that written data is flushed immediately instead of waiting for the buffer to fill up.
+> **NOTE (`AutoFlush = true`):** By default, `StreamWriter` uses an internal buffer and does not send data immediately. Setting `AutoFlush = true` ensures that written data is sent immediately instead of waiting for the buffer to fill up.
 
 ## 2. Client
 
@@ -37,4 +37,4 @@
 - **The empty catch block:** When the client exits, the connection and streams are disposed. At that moment, the `readerThread` may still be blocked waiting for data from the server. Closing the connection can cause an exception in that thread, which is intentionally ignored because the connection is being closed normally.
 - **NetworkStream Handling:** For the connection to the server, `GetStream()` provides the two-way communication stream. `StreamWriter` sends messages to the server, while `StreamReader` receives messages from it.
 
-> **NOTE (`AutoFlush = true`):** By default, `StreamWriter` uses an internal buffer and does not send data immediately. Setting `AutoFlush = true` ensures that every message is flushed immediately. This is important for real-time chat because messages do not remain waiting in the buffer.
+> **NOTE (`AutoFlush = true`):** By default, `StreamWriter` uses an internal buffer and does not send data immediately. Setting `AutoFlush = true` ensures that every message is sent immediately instead of remaining in the buffer.
