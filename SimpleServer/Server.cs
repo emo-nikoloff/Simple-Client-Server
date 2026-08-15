@@ -84,7 +84,7 @@ public class Server
                                     {
                                         if (client != currentClient)
                                         {
-                                            client.Writer.WriteLine($"{client.Username}: {input}");
+                                            client.Writer.WriteLine($"{currentClient.Username}: {input}");
                                         }
                                     }
                                 }
