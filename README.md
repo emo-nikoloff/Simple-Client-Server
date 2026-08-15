@@ -8,7 +8,7 @@
 
 ## How to Run
 
-1. In **Configurations/NetworkConfigurations.cs**, change ServerHost so that it contains the local IP address of the machine running the server.
+1. In **`Configurations\NetworkConfigurations.cs`**, change ServerHost so that it contains the local IP address of the machine running the server.
 2. Start the **Server** application.
 3. Start as many **Client** instances as needed.
 4. Each client must enter a name when prompted.
