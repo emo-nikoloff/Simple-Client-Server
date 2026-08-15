@@ -1,6 +1,8 @@
 using System.Net;
 using System.Net.Sockets;
 
+using static Configurations.NetworkConfigurations;
+
 namespace SimpleServer;
 
 public class Server
