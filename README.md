@@ -8,10 +8,11 @@
 
 ## How to Run
 
-1. Start the **Server** application first.
-2. Start as many **Client** instances as needed.
-3. Each client must enter a name when prompted.
-4. Once connected, clients can communicate with each other through the server.
+1. In **Configurations/NetworkConfigurations.cs**, change ServerHost so that it contains the local IP address of the machine running the server.
+2. Start the **Server** application.
+3. Start as many **Client** instances as needed.
+4. Each client must enter a name when prompted.
+5. Once connected, clients can communicate with each other through the server.
 
 ## 1. Server
 
